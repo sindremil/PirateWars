@@ -7,6 +7,7 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Polygon;
+import com.badlogic.gdx.math.Vector2;
 import com.mygdx.shapewars.model.ShapeWarsModel;
 import com.mygdx.shapewars.model.components.ComponentMappers;
 import com.mygdx.shapewars.model.components.PositionComponent;
@@ -14,6 +15,9 @@ import com.mygdx.shapewars.model.components.SpriteComponent;
 import com.mygdx.shapewars.model.components.VelocityComponent;
 import com.mygdx.shapewars.view.MainMenuView;
 import com.mygdx.shapewars.view.ShapeWarsView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ShapeWarsController {
 
@@ -25,20 +29,48 @@ public class ShapeWarsController {
     private final SpriteComponent spriteComponent;
 
     private Screen currentScreen;
+    boolean gameStarted;
 
     public ShapeWarsController(ShapeWarsModel model, ShapeWarsView view, MainMenuView mainMenuView) {
         this.model = model;
         this.shapeWarsView = view;
         this.mainMenuView = mainMenuView;
         this.currentScreen = mainMenuView;
+        gameStarted = true;
         velocityComponent = ComponentMappers.velocity.get(model.tank);
         positionComponent = ComponentMappers.position.get(model.tank);
         spriteComponent = ComponentMappers.sprite.get(model.tank);
+
         currentScreen.show();
     }
 
     public void update() {
         if (currentScreen instanceof ShapeWarsView) {
+            if (gameStarted) {
+                TiledMapTileLayer spawnLayer = shapeWarsView.getSpawnLayer();
+
+                List<Vector2> spawnCells = new ArrayList<>();
+                for (int y = 0; y < spawnLayer.getHeight(); y++) {
+                    for (int x = 0; x < spawnLayer.getWidth(); x++) {
+                        TiledMapTileLayer.Cell cell = spawnLayer.getCell(x, y);
+                        if (cell != null) {
+                            spawnCells.add(new Vector2(x, y));
+                        }
+                    }
+                }
+
+                Vector2 randomSpawnCell = spawnCells.get(MathUtils.random(0, spawnCells.size() - 1));
+
+                float playerX = randomSpawnCell.x * spawnLayer.getTileWidth();
+                float playerY = randomSpawnCell.y * spawnLayer.getTileHeight();
+
+                positionComponent.addPosition(playerX, playerY);
+                spriteComponent.getSprite().setPosition(positionComponent.getPosition().x, positionComponent.getPosition().y);
+                spriteComponent.getHitbox().setPosition(positionComponent.getPosition().x, positionComponent.getPosition().y);
+
+                gameStarted = false;
+            }
+
             getDirectionAndVelocityInput();
 
             TiledMapTileLayer collisionLayer = shapeWarsView.getCollisionLayer();
@@ -59,7 +91,6 @@ public class ShapeWarsController {
 
             // set direction only if no collision with walls
             if (collisionType.equals("none")) {
-                System.out.println("none");
                 // no collision rotate the tank as planned
                 spriteComponent.setRotation(velocityComponent.getDirection());
                 // No collision, update the position as planned
@@ -67,114 +98,8 @@ public class ShapeWarsController {
                 spriteComponent.getSprite().setPosition(positionComponent.getPosition().x, positionComponent.getPosition().y);
                 spriteComponent.getHitbox().setPosition(positionComponent.getPosition().x, positionComponent.getPosition().y);
             } else {
-                float goalX, goalY;
+                adjustPositionComponent(collisionType, oldX, oldY, newX, newY);
                 velocityComponent.setSpeed(0);
-                System.out.println(collisionType);
-                switch (collisionType) {
-                    case "left":
-                        // movement is to the left
-                        if (newX < oldX) {
-                            goalX = oldX + 0.1f;
-                            goalY = newY;
-                        } else {
-                            goalX = newX;
-                            goalY = newY;
-                        }
-                        break;
-                    case "right":
-                        // movement is to the right
-                        if (newX > oldX) {
-                            goalX = oldX - 0.1f;
-                            goalY = newY;
-                        } else {
-                            goalX = newX;
-                            goalY = newY;
-                        }
-                        break;
-                    case "top":
-                        // movement is upwards
-                        if (newY > oldY) {
-                            goalX = newX;
-                            goalY = oldY - 0.1f;
-                        } else {
-                            goalX = newX;
-                            goalY = newY;
-                        }
-                        break;
-                    case "bottom":
-                        // movement is downwards
-                        if (newY < oldY) {
-                            goalX = newX;
-                            goalY = oldY + 0.1f;
-                            positionComponent.addPosition(goalX, goalY);
-                        } else {
-                            goalX = newX;
-                            goalY = newY;
-                        }
-                        break;
-                    case "topLeft":
-                        if (newX < oldX) {
-                            goalX = oldX + 0.1f;
-                        } else {
-                            goalX = newX;
-                        }
-                        if (newY > oldY) {
-                            goalY = oldY - 0.1f;
-                        } else {
-                            goalY = newY;
-                        }
-                        break;
-                    case "topRight":
-                        if (newX > oldX) {
-                            goalX = oldX - 0.1f;
-                        } else {
-                            goalX = newX;
-                        }
-                        if (newY > oldY) {
-                            goalY = oldY - 0.1f;
-                        } else {
-                            goalY = newY;
-                        }
-                        break;
-                    case "bottomLeft":
-                        if (newX < oldX) {
-                            goalX = oldX + 0.1f;
-                        } else {
-                            goalX = newX;
-                        }
-                        if (newY < oldY) {
-                            goalY = oldY + 0.1f;
-                        } else {
-                            goalY = newY;
-                        }
-                        break;
-                    case "bottomRight":
-                        System.out.print("NewX: " + newX);
-                        System.out.println(" | OldX: " + oldX);
-                        System.out.print("NewY: " + newY);
-                        System.out.println(" | OldY: " + oldY);
-                        if (newX > oldX) {
-                            goalX = oldX - 0.1f;
-                        }
-                        else {
-                            goalX = newX;
-                        }
-                        if (newY < oldY) {
-                            goalY = oldY + 0.1f;
-                        } else {
-                            goalY = newY;
-                        }
-                        break;
-                    case "severalCollisions":
-                        goalX = oldX;
-                        goalY = oldY;
-                        break;
-                    default:
-                        goalX = newX;
-                        goalY = newY;
-                        break;
-                }
-                positionComponent.addPosition(goalX, goalY);
                 spriteComponent.getSprite().setPosition(positionComponent.getPosition().x, positionComponent.getPosition().y);
                 spriteComponent.getHitbox().setPosition(positionComponent.getPosition().x, positionComponent.getPosition().y);
                 spriteComponent.setRotation(velocityComponent.getDirection());
@@ -187,6 +112,48 @@ public class ShapeWarsController {
         }
         currentScreen.render(0);
     }
+
+    private void adjustPositionComponent(String collisionType, float oldX, float oldY, float newX, float newY) {
+        float goalX = newX, goalY = newY;
+
+        switch (collisionType) {
+            case "left":
+                if (newX < oldX) goalX = oldX + 0.1f;
+                break;
+            case "right":
+                if (newX > oldX) goalX = oldX - 0.1f;
+                break;
+            case "top":
+                if (newY > oldY) goalY = oldY - 0.1f;
+                break;
+            case "bottom":
+                if (newY < oldY) goalY = oldY + 0.1f;
+                break;
+            case "topLeft":
+                if (newX < oldX) goalX = oldX + 0.1f;
+                if (newY > oldY) goalY = oldY - 0.1f;
+                break;
+            case "topRight":
+                if (newX > oldX) goalX = oldX - 0.1f;
+                if (newY > oldY) goalY = oldY - 0.1f;
+                break;
+            case "bottomLeft":
+                if (newX < oldX) goalX = oldX + 0.1f;
+                if (newY < oldY) goalY = oldY + 0.1f;
+                break;
+            case "bottomRight":
+                if (newX > oldX) goalX = oldX - 0.1f;
+                if (newY < oldY) goalY = oldY + 0.1f;
+                break;
+            case "severalCollisions":
+                goalX = oldX;
+                goalY = oldY;
+                break;
+        }
+        positionComponent.addPosition(goalX, goalY);
+    }
+
+
 
     private void getDirectionAndVelocityInput() {
         // get direction

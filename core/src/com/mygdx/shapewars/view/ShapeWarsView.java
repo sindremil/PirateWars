@@ -14,7 +14,6 @@ import com.mygdx.shapewars.model.components.SpriteComponent;
 
 import com.badlogic.gdx.maps.tiled.TiledMap;
 
-
 public class ShapeWarsView implements Screen {
     private TiledMap map;
     private OrthogonalTiledMapRenderer renderer;
@@ -32,7 +31,7 @@ public class ShapeWarsView implements Screen {
     @Override
     public void show() {
         TmxMapLoader loader = new TmxMapLoader();
-        map = loader.load("maps/secondMap.tmx");
+        map = loader.load("maps/thirdMap.tmx");
 
         renderer = new OrthogonalTiledMapRenderer(map);
         camera = new OrthographicCamera();
@@ -98,4 +97,11 @@ public class ShapeWarsView implements Screen {
     public TiledMapTileLayer getCollisionLayer() {
         return (TiledMapTileLayer) map.getLayers().get(1);
     }
+
+    public TiledMapTileLayer getSpawnLayer() {
+        return (TiledMapTileLayer) map.getLayers().get(2);
+    }
+
+
+
 }
