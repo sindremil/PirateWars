@@ -102,29 +102,29 @@ public class CollisionSystem extends EntitySystem {
      * @param <T>            the type you want to return which must be a Rectangle
      *                       or Vector2.
      * @param entity         the entity to check collision on.
-     * @param collisionLayer the collision layer of the map.
+     * @param obstacles      the obstacles of the map.
      * @param newX           the new X value from the MovementSystem.
      * @param newY           the new Y value from the MovementSystem.
      * @return the overlap between something... Please tell us Sophie.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T getCollisionWithWall(Entity entity, ArrayList<Polygon> walls, float newX, float newY) {
-        // check for collision with walls
+    public static <T> T getCollisionWithWall(Entity entity, ArrayList<Polygon> obstacles, float newX, float newY) {
+        // check for collision with obstacles
         Polygon entityBounds = getEntityBounds(entity, newX, newY);
         Vector2 overlapVector = new Vector2();
         Rectangle entityRectangle = getEntityRectangle(entity, newX, newY);
 
-        for (Polygon wall : walls) {
-            if (wall != null) {
+        for (Polygon obstacle : obstacles) {
+            if (obstacle != null) {
                 // Checks if the entity is tank or not
                 if (entity.getComponent(IdentityComponent.class) != null) {
-                    Vector2 tempVector = getOverlapVector(entityBounds, wall);
+                    Vector2 tempVector = getOverlapVector(entityBounds, obstacle);
                     overlapVector.add(tempVector.x, tempVector.y);
                 } else {
                     Rectangle wallRect = new Rectangle();
-                    wallRect.set(wall.getBoundingRectangle());
+                    wallRect.set(obstacle.getBoundingRectangle());
                     if (wallRect.overlaps(entityRectangle)) {
-                        return (T) wall;
+                        return (T) obstacle;
                     }
                 }
             }

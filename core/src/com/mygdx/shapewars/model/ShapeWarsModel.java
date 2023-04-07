@@ -7,6 +7,7 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.objects.PolygonMapObject;
@@ -15,6 +16,8 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.mygdx.shapewars.controller.Firebutton;
 import com.mygdx.shapewars.controller.Joystick;
 import com.mygdx.shapewars.model.components.HealthComponent;
 import com.mygdx.shapewars.model.components.IdentityComponent;
@@ -43,6 +46,9 @@ public class ShapeWarsModel {
     public String clientId;
     public HashMap<String, Integer> clientTankMapping = new HashMap<>();
     public Joystick joystick;
+    public Firebutton firebutton;
+    public FitViewport fitViewport;
+
     public Launcher launcher;
 
     public ShapeWarsModel(Launcher launcher) {
@@ -54,7 +60,8 @@ public class ShapeWarsModel {
             1 = collisionLayer
             2 = bulletLayer
             3 = spawnLayer
-            4, 5, ... = non-existent yet
+            4 = collisionObjectLayer (defines the Polygons for collision detection)
+            5, 6 ... = non-existent yet
          */
 
         map = loader.load("maps/mobileMap2.tmx");
@@ -74,8 +81,18 @@ public class ShapeWarsModel {
 
         batch = new SpriteBatch();
         engine = new Engine();
+        // TODO fitviewport
+        OrthographicCamera camera = new OrthographicCamera();
+        float mapWidth = map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class);
+        float mapHeight = map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class);
+        camera.setToOrtho(false, mapWidth, mapHeight);
+        camera.update();
 
-        joystick = new Joystick(400, 400, 300, 150);
+        // fitViewport scales the game world to fit on screen with the correct dimensions
+        fitViewport = new FitViewport(mapWidth, mapHeight, camera);
+
+        joystick = new Joystick(400, 400, 200, 100);
+        firebutton = new Firebutton(Gdx.graphics.getWidth() - 400, 400, 150);
 
         if (this.role == Role.Server) {
             this.serverConnector = new ServerConnector(this);
@@ -118,7 +135,7 @@ public class ShapeWarsModel {
         }
 
         // todo reduce parameters
-        for (EntitySystem system : SystemFactory.generateSystems(role, launcher, joystick, clientConnector, clientId, obstacles)) {
+        for (EntitySystem system : SystemFactory.generateSystems(role, launcher, joystick, firebutton, clientConnector, clientId, obstacles, fitViewport)) {
             engine.addSystem(system);
         }
     }
@@ -145,5 +162,9 @@ public class ShapeWarsModel {
 
     public static TiledMapTileLayer getLayer(int layerId) {
       return (TiledMapTileLayer) getMap().getLayers().get(layerId);
+    }
+
+    public Firebutton getFirebutton() {
+        return firebutton;
     }
 }

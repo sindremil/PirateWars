@@ -18,4 +18,11 @@ public class Joystick {
     public Circle getInnerCircle() {
         return innerCircle;
     }
+
+    public void setJoystick(int x, int y, int outerRadius, int innerRadius) {
+        outerCircle.setPosition(x, y);
+        innerCircle.setPosition(x, y);
+        outerCircle.setRadius(outerRadius);
+        innerCircle.setRadius(innerRadius);
+    }
 }

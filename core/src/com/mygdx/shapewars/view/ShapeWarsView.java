@@ -35,6 +35,7 @@ public class ShapeWarsView implements Screen {
         this.model = model;
         this.stage = new Stage(); // todo check if we need to change that
         map = model.getMap();
+        fitViewport = model.fitViewport;
     }
 
     public void setController(ShapeWarsController controller) {
@@ -48,16 +49,19 @@ public class ShapeWarsView implements Screen {
         shapeRenderer = new ShapeRenderer();
 
         // creation and setting of map to make sure dimensions are set right and whole map is shown
-        OrthographicCamera camera = new OrthographicCamera();
+        //OrthographicCamera camera = new OrthographicCamera();
         float mapWidth = map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class);
         float mapHeight = map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class);
-        camera.setToOrtho(false, mapWidth, mapHeight);
+        /*camera.setToOrtho(false, mapWidth, mapHeight);
         camera.update();
 
         // fitViewport scales the game world to fit on screen with the correct dimensions
-        fitViewport = new FitViewport(mapWidth, mapHeight, camera);
+        fitViewport = new FitViewport(mapWidth, mapHeight, camera);*/
+        model.getJoystick().setJoystick(100, 100, 100, 50);
+        model.getFirebutton().setFirebutton(fitViewport.getWorldWidth()-100, 100, 50);
         // extendViewport allows for a scalable background that shows when fitViewport doesn't use the whole screen
         extendViewport = new ExtendViewport(mapWidth, mapHeight);
+
 
         // Background that shows around the actual playing field
         Texture background = new Texture(Gdx.files.internal("maps/mapExpansionGrass.png"));
@@ -104,11 +108,16 @@ public class ShapeWarsView implements Screen {
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
         if (model.launcher == Launcher.Mobile) {
+            // draw joystick
+            shapeRenderer.setProjectionMatrix(fitViewport.getCamera().combined);
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             shapeRenderer.setColor(new Color(135 / 255f, 206 / 255f, 235 / 255f, 0.3f));
             shapeRenderer.circle(model.getJoystick().getOuterCircle().x, model.getJoystick().getOuterCircle().y, model.getJoystick().getOuterCircle().radius);
             shapeRenderer.setColor(new Color(0, 0, 139 / 255f, 0.3f));
             shapeRenderer.circle(model.getJoystick().getInnerCircle().x, model.getJoystick().getInnerCircle().y, model.getJoystick().getInnerCircle().radius);
+
+            // draw fireButton
+            shapeRenderer.circle(model.getFirebutton().getOuterCircle().x, model.getFirebutton().getOuterCircle().y, model.getFirebutton().getOuterCircle().radius);
         }
         shapeRenderer.end();
     }
