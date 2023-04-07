@@ -8,9 +8,12 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.maps.MapObject;
+import com.badlogic.gdx.maps.objects.PolygonMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 import com.mygdx.shapewars.controller.Joystick;
 import com.mygdx.shapewars.model.components.HealthComponent;
@@ -23,6 +26,7 @@ import com.mygdx.shapewars.config.Role;
 import com.mygdx.shapewars.model.system.SystemFactory;
 import com.mygdx.shapewars.network.client.ClientConnector;
 import com.mygdx.shapewars.network.server.ServerConnector;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +57,21 @@ public class ShapeWarsModel {
             4, 5, ... = non-existent yet
          */
 
-        map = loader.load("maps/map2.tmx"); // make server send this AFTER sophie is done
+        map = loader.load("maps/mobileMap2.tmx");
+
+        // TODO: integrate well
+        ArrayList<Polygon> obstacles = new ArrayList<Polygon>();
+
+        // iterating over all map objects and adding them to ArrayList<Polygon> obstacles
+        for (MapObject object : map.getLayers().get(4).getObjects()) {
+            if (object instanceof PolygonMapObject) {
+                Polygon rect = ((PolygonMapObject) object).getPolygon();
+                obstacles.add(rect);
+            }
+        }
+        // TODO: integrating finished
+
+
         batch = new SpriteBatch();
         engine = new Engine();
 
@@ -100,7 +118,7 @@ public class ShapeWarsModel {
         }
 
         // todo reduce parameters
-        for (EntitySystem system : SystemFactory.generateSystems(role, launcher, joystick, clientConnector, clientId)) {
+        for (EntitySystem system : SystemFactory.generateSystems(role, launcher, joystick, clientConnector, clientId, obstacles)) {
             engine.addSystem(system);
         }
     }

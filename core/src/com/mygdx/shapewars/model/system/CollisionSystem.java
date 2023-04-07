@@ -12,13 +12,14 @@ import com.mygdx.shapewars.model.components.ComponentMappers;
 import com.mygdx.shapewars.model.components.IdentityComponent;
 import com.mygdx.shapewars.model.components.SpriteComponent;
 import com.mygdx.shapewars.model.components.VelocityComponent;
+import java.util.ArrayList;
 
 public class CollisionSystem extends EntitySystem {
 
     private static volatile CollisionSystem instance;
 
     private CollisionSystem() {
-    };
+    }
 
     /**
      * Gets the bounds of an Entity.
@@ -107,29 +108,23 @@ public class CollisionSystem extends EntitySystem {
      * @return the overlap between something... Please tell us Sophie.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T getCollisionWithWall(Entity entity, float newX, float newY) {
+    public static <T> T getCollisionWithWall(Entity entity, ArrayList<Polygon> walls, float newX, float newY) {
         // check for collision with walls
-        Polygon tileBounds = new Polygon();
         Polygon entityBounds = getEntityBounds(entity, newX, newY);
         Vector2 overlapVector = new Vector2();
         Rectangle entityRectangle = getEntityRectangle(entity, newX, newY);
-        TiledMapTileLayer collisionLayer = ShapeWarsModel.getLayer(1);
-        for (int x = 0; x < collisionLayer.getWidth(); x++) {
-            for (int y = 0; y < collisionLayer.getHeight(); y++) {
-                TiledMapTileLayer.Cell cell = collisionLayer.getCell(x, y);
-                if (cell != null) {
-                    // Checks if the entity is tank or not
-                    if (entity.getComponent(IdentityComponent.class) != null) {
-                        tileBounds = getTileBounds(x, y);
-                        Vector2 tempVector = getOverlapVector(entityBounds, tileBounds);
-                        overlapVector.add(tempVector.x, tempVector.y);
-                    } else {
-                        Rectangle rect = new Rectangle(x * collisionLayer.getTileWidth(),
-                                y * collisionLayer.getTileHeight(),
-                                collisionLayer.getTileWidth(), collisionLayer.getTileHeight());
-                        if (rect.overlaps(entityRectangle)) {
-                            return (T) rect;
-                        }
+
+        for (Polygon wall : walls) {
+            if (wall != null) {
+                // Checks if the entity is tank or not
+                if (entity.getComponent(IdentityComponent.class) != null) {
+                    Vector2 tempVector = getOverlapVector(entityBounds, wall);
+                    overlapVector.add(tempVector.x, tempVector.y);
+                } else {
+                    Rectangle wallRect = new Rectangle();
+                    wallRect.set(wall.getBoundingRectangle());
+                    if (wallRect.overlaps(entityRectangle)) {
+                        return (T) wall;
                     }
                 }
             }
@@ -137,7 +132,7 @@ public class CollisionSystem extends EntitySystem {
         if (entity.getComponent(IdentityComponent.class) != null) {
             return (T) overlapVector;
         } else {
-            return (T) new Rectangle();
+            return (T) new Polygon();
         }
     }
 
