@@ -47,7 +47,7 @@ public class ShapeWarsModel {
     public HashMap<String, Integer> clientTankMapping = new HashMap<>();
     public Joystick joystick;
     public Firebutton firebutton;
-    public FitViewport fitViewport;
+    public FitViewport shapeWarsViewport;
 
     public Launcher launcher;
 
@@ -89,10 +89,10 @@ public class ShapeWarsModel {
         camera.update();
 
         // fitViewport scales the game world to fit on screen with the correct dimensions
-        fitViewport = new FitViewport(mapWidth, mapHeight, camera);
+        shapeWarsViewport = new FitViewport(mapWidth, mapHeight, camera);
 
-        joystick = new Joystick(400, 400, 200, 100);
-        firebutton = new Firebutton(Gdx.graphics.getWidth() - 400, 400, 150);
+        joystick = new Joystick(100, 100, 100, 50);
+        firebutton = new Firebutton(shapeWarsViewport.getWorldWidth()-100, 100, 50);
 
         if (this.role == Role.Server) {
             this.serverConnector = new ServerConnector(this);
@@ -135,7 +135,7 @@ public class ShapeWarsModel {
         }
 
         // todo reduce parameters
-        for (EntitySystem system : SystemFactory.generateSystems(role, launcher, joystick, firebutton, clientConnector, clientId, obstacles, fitViewport)) {
+        for (EntitySystem system : SystemFactory.generateSystems(role, launcher, joystick, firebutton, clientConnector, clientId, obstacles, shapeWarsViewport)) {
             engine.addSystem(system);
         }
     }

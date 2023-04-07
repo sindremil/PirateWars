@@ -35,7 +35,7 @@ public class ShapeWarsView implements Screen {
         this.model = model;
         this.stage = new Stage(); // todo check if we need to change that
         map = model.getMap();
-        fitViewport = model.fitViewport;
+        fitViewport = model.shapeWarsViewport;
     }
 
     public void setController(ShapeWarsController controller) {
@@ -49,16 +49,9 @@ public class ShapeWarsView implements Screen {
         shapeRenderer = new ShapeRenderer();
 
         // creation and setting of map to make sure dimensions are set right and whole map is shown
-        //OrthographicCamera camera = new OrthographicCamera();
         float mapWidth = map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class);
         float mapHeight = map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class);
-        /*camera.setToOrtho(false, mapWidth, mapHeight);
-        camera.update();
 
-        // fitViewport scales the game world to fit on screen with the correct dimensions
-        fitViewport = new FitViewport(mapWidth, mapHeight, camera);*/
-        model.getJoystick().setJoystick(100, 100, 100, 50);
-        model.getFirebutton().setFirebutton(fitViewport.getWorldWidth()-100, 100, 50);
         // extendViewport allows for a scalable background that shows when fitViewport doesn't use the whole screen
         extendViewport = new ExtendViewport(mapWidth, mapHeight);
 

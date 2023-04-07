@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Circle;
 public class Firebutton {
     private final Circle outerCircle;
 
-    public Firebutton(int screenX, int screenY, int outerCircleRadius) {
+    public Firebutton(float screenX, float screenY, int outerCircleRadius) {
         this.outerCircle = new Circle(screenX, screenY, outerCircleRadius);
     }
 
