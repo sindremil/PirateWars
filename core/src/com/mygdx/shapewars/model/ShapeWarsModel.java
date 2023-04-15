@@ -122,49 +122,50 @@ public class ShapeWarsModel {
     }
 
     public void generateEntities() {
+        TiledMapTileLayer spawnLayer = (TiledMapTileLayer) map.getLayers().get(3);
+        List<Vector2> spawnCells = getSpawnCells(spawnLayer);
+        
         if (this.role == Role.Server) {
             numPlayers = deviceShipMapping.size();
-            TiledMapTileLayer spawnLayer = (TiledMapTileLayer) map.getLayers().get(3);
-
-            List<Vector2> spawnCells = new ArrayList<>();
-            for (int y = 0; y < spawnLayer.getHeight(); y++) {
-                for (int x = 0; x < spawnLayer.getWidth(); x++) {
-                    TiledMapTileLayer.Cell cell = spawnLayer.getCell(x, y);
-                    if (cell != null) {
-                        spawnCells.add(new Vector2(x, y));
-                    }
-                }
-            }
-
-            for (int i = 0; i < numPlayers; i++) {
-                Entity ship = new Entity();
-                Vector2 cell = spawnCells.get(i);
-                ship.add(new PositionComponent(cell.x * spawnLayer.getTileWidth(), cell.y * spawnLayer.getTileHeight()));
-                ship.add(new VelocityComponent(0, 0));
-                ship.add(new SpriteComponent(i == shipId ? PLAYER_FULL_HEALTH : ENEMY_FULL_HEALTH, SHIP_WIDTH, SHIP_HEIGHT)); // todo give own ship its own color
-                ship.add(new HealthComponent(100));
-                ship.add(new IdentityComponent(i));
-                engine.addEntity(ship);
-            }
-            this.updateSystemServer = UpdateSystemServer.getInstance(this);
-            engine.addSystem(updateSystemServer);
+            createShips(spawnLayer, spawnCells, UpdateSystemServer.getInstance(this));
             isGameActive = true;
         } else {
-            for (int i = 0; i < numPlayers; i++) {
-                Entity ship = new Entity();
-                ship.add(new PositionComponent(0, 0));
-                ship.add(new VelocityComponent(0, 0));
-                ship.add(new SpriteComponent(i == shipId ? PLAYER_FULL_HEALTH : ENEMY_FULL_HEALTH, SHIP_WIDTH, SHIP_HEIGHT)); // todo give own ship its own color
-                ship.add(new HealthComponent(100));
-                ship.add(new IdentityComponent(i));
-                engine.addEntity(ship);
-            }
-            this.updateSystemClient = UpdateSystemClient.getInstance(this);
-            engine.addSystem(updateSystemClient);
+            createShips(spawnLayer, spawnCells, UpdateSystemClient.getInstance(this));
         }
+        
         for (EntitySystem system : SystemFactory.generateSystems(this)) {
             engine.addSystem(system);
         }
+    }
+
+    private List<Vector2> getSpawnCells(TiledMapTileLayer spawnLayer) {
+    
+        List<Vector2> spawnCells = new ArrayList<>();
+        for (int y = 0; y < spawnLayer.getHeight(); y++) {
+            for (int x = 0; x < spawnLayer.getWidth(); x++) {
+                TiledMapTileLayer.Cell cell = spawnLayer.getCell(x, y);
+                if (cell != null) {
+                    spawnCells.add(new Vector2(x, y));
+                }
+            }
+        }
+    
+        return spawnCells;
+    }
+
+    private void createShips(TiledMapTileLayer spawnLayer, List<Vector2> spawnCells, EntitySystem updateSystem) {
+        for (int i = 0; i < numPlayers; i++) {
+            Entity ship = new Entity();
+            Vector2 cell = spawnCells.get(i);
+            ship.add(new PositionComponent(cell.x * spawnLayer.getTileWidth(), cell.y * spawnLayer.getTileHeight()));
+            ship.add(new VelocityComponent(0, 0));
+            ship.add(new SpriteComponent(i == shipId ? PLAYER_FULL_HEALTH : ENEMY_FULL_HEALTH, SHIP_WIDTH, SHIP_HEIGHT)); // todo give own ship its own color
+            ship.add(new HealthComponent(100));
+            ship.add(new IdentityComponent(i));
+            engine.addEntity(ship);
+        }
+
+        engine.addSystem(updateSystem);
     }
 
     public void update() {
