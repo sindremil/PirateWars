@@ -9,6 +9,7 @@ import com.mygdx.shapewars.model.components.HealthComponent;
 import com.mygdx.shapewars.model.components.IdentityComponent;
 import com.mygdx.shapewars.model.components.PositionComponent;
 import com.mygdx.shapewars.model.components.VelocityComponent;
+import com.mygdx.shapewars.network.ConnectorStrategy;
 import com.mygdx.shapewars.network.data.BulletData;
 import com.mygdx.shapewars.network.data.GameResponse;
 import com.mygdx.shapewars.network.data.InputRequest;
@@ -19,20 +20,26 @@ import com.mygdx.shapewars.view.MainMenuView;
 
 import java.io.IOException;
 
-public class ServerConnector {
+public class ServerConnector implements ConnectorStrategy {
 
     private Server server;
     private Kryo kryo;
+    private ShapeWarsModel model;
 
     public ServerConnector(ShapeWarsModel model) {
         this.server = new Server();
+        this.kryo = new Kryo();
+        this.model = model;
+    }
+
+    public void startConnection() {
         this.server.start();
 
         try {
             server.bind(25444, 25666);
         } catch (IOException e) {
             e.printStackTrace();
-            model.controller.setScreen(new MainMenuView(model.controller));
+            this.model.controller.setScreen(new MainMenuView(model.controller));
             return;
         }
 

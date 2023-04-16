@@ -9,6 +9,7 @@ import com.mygdx.shapewars.model.components.HealthComponent;
 import com.mygdx.shapewars.model.components.IdentityComponent;
 import com.mygdx.shapewars.model.components.PositionComponent;
 import com.mygdx.shapewars.model.components.VelocityComponent;
+import com.mygdx.shapewars.network.ConnectorStrategy;
 import com.mygdx.shapewars.network.data.BulletData;
 import com.mygdx.shapewars.network.data.GameResponse;
 import com.mygdx.shapewars.network.data.InputRequest;
@@ -19,20 +20,28 @@ import com.mygdx.shapewars.view.MainMenuView;
 
 import java.io.IOException;
 
-public class ClientConnector {
+public class ClientConnector implements ConnectorStrategy {
 
     private Client client;
     private Kryo kryo;
+    private ShapeWarsModel model;
+    private String ipAddress;
 
     public ClientConnector(ShapeWarsModel model, String ipAddress) {
         this.client = new com.esotericsoftware.kryonet.Client();
+        this.kryo = new Kryo();
+        this.model = model;
+        this.ipAddress = ipAddress;
+    }
+
+    public void startConnection() {
         this.client.start();
 
         try {
-            client.connect(5000, ipAddress, 25444, 25666);
+            client.connect(5000, this.ipAddress, 25444, 25666);
         } catch (IOException e) {
             e.printStackTrace();
-            model.controller.setScreen(new MainMenuView(model.controller));
+            this.model.controller.setScreen(new MainMenuView(model.controller));
             return;
         }
 
@@ -67,7 +76,6 @@ public class ClientConnector {
 
         client.addListener(new ClientListener(model));
     }
-
     public void sendInputRequest(String clientId, float valueInput, float directionInput, boolean firingFlag) {
         client.sendUDP(new InputRequest(clientId, valueInput, directionInput, firingFlag));
     }

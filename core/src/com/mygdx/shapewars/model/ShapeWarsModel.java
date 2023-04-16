@@ -24,6 +24,7 @@ import com.mygdx.shapewars.config.Role;
 import com.mygdx.shapewars.model.system.SystemFactory;
 import com.mygdx.shapewars.model.system.UpdateSystemClient;
 import com.mygdx.shapewars.model.system.UpdateSystemServer;
+import com.mygdx.shapewars.network.ConnectorStrategy;
 import com.mygdx.shapewars.network.client.ClientConnector;
 import com.mygdx.shapewars.network.server.ServerConnector;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -43,6 +44,7 @@ public class ShapeWarsModel {
     public static Engine engine;
     private static TiledMap map;
     public Role role;
+    public ConnectorStrategy connectorStrategy;
     public ServerConnector serverConnector; // todo implement strategy pattern
     public ClientConnector clientConnector;
     public HashMap<String, Integer> deviceShipMapping = new HashMap<>();
@@ -114,9 +116,11 @@ public class ShapeWarsModel {
             this.shipId = 0;
             this.deviceShipMapping = new HashMap<>();
             deviceShipMapping.put(this.gameModel.deviceId, shipId);
-            this.serverConnector = new ServerConnector(this);
+            this.connectorStrategy = new ServerConnector(this);
+            this.connectorStrategy.startConnection();
         } else {
-            this.clientConnector = new ClientConnector(this, serverIpAddress);
+            this.connectorStrategy = new ClientConnector(this, serverIpAddress);
+            this.connectorStrategy.startConnection();
         }
 
     }
